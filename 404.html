@@ -102,6 +102,14 @@
         max-width: 1120px;
       }
 
+      .hero-titlebar {
+        width: 100%;
+      }
+
+      .hero-mark-mobile {
+        display: none;
+      }
+
       .hero-mark {
         display: flex;
         justify-content: flex-end;
@@ -264,6 +272,7 @@
         margin-inline: auto;
         border-top: 1px solid var(--rule);
         width: min(100%, 944px);
+        justify-self: center;
       }
 
       .pricing-row {
@@ -581,12 +590,56 @@
 
       @media (max-width: 640px) {
         .masthead {
-          align-items: start;
-          flex-direction: column;
+          align-items: end;
+          flex-direction: row;
+          gap: 12px;
+        }
+
+        .brand-wordmark {
+          width: min(100%, 268px);
+        }
+
+        .brand-logo {
+          width: min(100%, 176px);
+        }
+
+        .est {
+          margin-bottom: 5px;
+        }
+
+        .hero {
+          gap: 20px;
+          padding: 36px 0 28px;
+        }
+
+        .hero-titlebar {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 14px;
+          width: 100%;
         }
 
         .title {
+          flex: 1 1 auto;
           font-size: clamp(3.15rem, 15vw, 4.7rem);
+        }
+
+        .hero-mark {
+          display: none;
+        }
+
+        .hero-mark-mobile {
+          display: block;
+          flex: 0 0 auto;
+          width: clamp(72px, 18vw, 92px);
+          height: auto;
+          margin-top: 6px;
+        }
+
+        .subtitle,
+        .intro {
+          width: 100%;
         }
 
         .intro {
@@ -594,12 +647,23 @@
           font-size: 0.98rem;
         }
 
-        .brand-wordmark {
-          width: min(100%, 320px);
+        .pricing {
+          justify-items: center;
         }
 
-        .brand-logo {
-          width: min(100%, 176px);
+        .pricing h2,
+        .pricing-grid,
+        .pricing-note {
+          width: min(100%, 560px);
+        }
+
+        .pricing h2 {
+          justify-self: stretch;
+        }
+
+        .pricing-grid,
+        .pricing-note {
+          justify-self: center;
         }
 
         .info-strip {
@@ -636,7 +700,10 @@
 
       <section class="hero">
         <div class="hero-copy">
-          <h1 class="title">SUMMER SERVICE</h1>
+          <div class="hero-titlebar">
+            <h1 class="title">SUMMER SERVICE</h1>
+            <img class="hero-mark-mobile" src="assets/kitchen-island-logo-transparent.png" alt="" aria-hidden="true">
+          </div>
           <p class="subtitle">Friends &amp; Family Edition</p>
           <p class="intro">Join us as we celebrate two years of &quot;KITCHEN ISLAND&quot; with an afternoon of exceptional music, thoughtful hospitality and the community that built it.</p>
         </div>
