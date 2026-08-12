@@ -98,6 +98,7 @@
       }
 
       .hero-copy {
+        width: 100%;
         max-width: 1120px;
       }
 
@@ -121,7 +122,7 @@
         line-height: 0.9;
         font-weight: 600;
         letter-spacing: -0.04em;
-        max-width: 13.2ch;
+        width: 100%;
       }
 
       .subtitle {
@@ -131,11 +132,12 @@
         letter-spacing: 0.16em;
         font-size: clamp(0.98rem, 1.1vw, 1.12rem);
         font-weight: 700;
+        width: 100%;
       }
 
       .intro {
         margin-top: 28px;
-        max-width: 62ch;
+        width: 100%;
         color: var(--muted);
         line-height: 1.9;
         font-size: 1.08rem;
@@ -259,16 +261,18 @@
         display: grid;
         gap: 0;
         margin-top: 28px;
-        padding-top: 20px;
+        margin-inline: auto;
         border-top: 1px solid var(--rule);
+        width: min(100%, 944px);
       }
 
       .pricing-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        min-height: 60px;
-        padding: 0 0 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: 24px;
+        min-height: 58px;
+        padding: 16px 0;
         border-bottom: 1px solid rgba(23, 19, 16, 0.08);
       }
 
@@ -279,6 +283,7 @@
       .pricing-label {
         display: block;
         line-height: 1;
+        align-self: center;
       }
 
       .pricing-row strong {
@@ -295,7 +300,8 @@
 
       .pricing-note {
         margin-top: 22px;
-        width: min(100%, 78ch);
+        margin-inline: auto;
+        width: min(100%, 944px);
         max-width: none;
         color: var(--muted);
         line-height: 1.85;
@@ -723,11 +729,6 @@
                   <input id="email" name="email" type="email" autocomplete="email" required>
                 </div>
 
-                <div class="field">
-                  <label class="form-label" for="instagram">Instagram @</label>
-                  <input id="instagram" name="instagram" type="text" autocomplete="off" required>
-                </div>
-
                 <div class="field-group">
                   <span class="form-label">Community Member?</span>
                   <div class="segment" role="radiogroup" aria-label="Community Member?">
@@ -743,8 +744,13 @@
                 </div>
 
                 <div class="conditional-field" data-conditional-field data-visible="true" aria-hidden="false">
-                  <label class="form-label" for="invitedBy">Who invited you?</label>
+                  <label class="form-label" for="invitedBy">Which community member referred you?</label>
                   <input id="invitedBy" name="invitedBy" type="text" data-invited-by autocomplete="off" placeholder="Name or Instagram @">
+                </div>
+
+                <div class="field">
+                  <label class="form-label" for="instagram">Instagram @ <span style="text-transform:none; letter-spacing:0; font-size:0.92em;">(optional)</span></label>
+                  <input id="instagram" name="instagram" type="text" autocomplete="off">
                 </div>
 
                 <div class="field">
