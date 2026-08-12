@@ -56,20 +56,27 @@
       }
 
       .shell {
-        width: min(1360px, calc(100vw - 48px));
+        width: min(1420px, calc(100vw - 48px));
         margin: 0 auto;
         padding: 28px 0 72px;
       }
 
       .masthead {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
+        align-items: end;
+        gap: 24px;
         padding-bottom: 20px;
         border-bottom: 1px solid var(--rule-strong);
       }
 
+      .brand-wordmark {
+        width: min(100%, 420px);
+        height: auto;
+      }
+
       .brand-logo {
-        width: min(100%, 224px);
+        width: min(100%, 248px);
         height: auto;
       }
 
@@ -84,14 +91,14 @@
 
       .hero {
         display: grid;
-        grid-template-columns: minmax(0, 1.08fr) minmax(180px, 0.52fr);
-        gap: 56px;
+        grid-template-columns: minmax(0, 1.38fr) minmax(220px, 0.34fr);
+        gap: 64px;
         align-items: start;
-        padding: 56px 0 48px;
+        padding: 64px 0 48px;
       }
 
       .hero-copy {
-        max-width: 860px;
+        max-width: 1120px;
       }
 
       .hero-mark {
@@ -114,6 +121,7 @@
         line-height: 0.9;
         font-weight: 600;
         letter-spacing: -0.04em;
+        max-width: 13.2ch;
       }
 
       .subtitle {
@@ -121,16 +129,16 @@
         color: var(--accent);
         text-transform: uppercase;
         letter-spacing: 0.16em;
-        font-size: 0.86rem;
+        font-size: clamp(0.98rem, 1.1vw, 1.12rem);
         font-weight: 700;
       }
 
       .intro {
         margin-top: 28px;
-        max-width: 37ch;
+        max-width: 62ch;
         color: var(--muted);
         line-height: 1.9;
-        font-size: 1.05rem;
+        font-size: 1.08rem;
       }
 
       .gallery {
@@ -228,8 +236,8 @@
 
       .booking-section {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
-        gap: 48px;
+        grid-template-columns: minmax(0, 1.12fr) minmax(360px, 420px);
+        gap: 56px;
         padding-top: 48px;
         align-items: start;
       }
@@ -249,17 +257,18 @@
 
       .pricing-grid {
         display: grid;
-        gap: 18px;
+        gap: 0;
         margin-top: 28px;
         padding-top: 20px;
         border-top: 1px solid var(--rule);
       }
 
       .pricing-row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 16px;
-        padding-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        min-height: 60px;
+        padding: 0 0 18px;
         border-bottom: 1px solid rgba(23, 19, 16, 0.08);
       }
 
@@ -267,14 +276,26 @@
         padding-bottom: 0;
       }
 
+      .pricing-label {
+        display: block;
+        line-height: 1;
+      }
+
       .pricing-row strong {
         font-size: 1.04rem;
         font-weight: 600;
+        line-height: 1;
+      }
+
+      .pricing-value {
+        display: block;
+        min-width: 3ch;
+        text-align: right;
       }
 
       .pricing-note {
         margin-top: 22px;
-        width: min(100%, 54ch);
+        width: min(100%, 78ch);
         max-width: none;
         color: var(--muted);
         line-height: 1.85;
@@ -523,6 +544,10 @@
           padding-top: 0;
         }
 
+        .title {
+          max-width: none;
+        }
+
         .booking-section {
           grid-template-columns: 1fr;
         }
@@ -549,6 +574,11 @@
       }
 
       @media (max-width: 640px) {
+        .masthead {
+          align-items: start;
+          flex-direction: column;
+        }
+
         .title {
           font-size: clamp(3.15rem, 15vw, 4.7rem);
         }
@@ -556,6 +586,10 @@
         .intro {
           max-width: none;
           font-size: 0.98rem;
+        }
+
+        .brand-wordmark {
+          width: min(100%, 320px);
         }
 
         .brand-logo {
@@ -590,6 +624,7 @@
   <body>
     <main class="shell">
       <header class="masthead">
+        <img class="brand-wordmark" src="assets/kitchen-island-wordmark-transparent.png" alt='&quot;KITCHEN ISLAND&quot; wordmark'>
         <p class="est">Est. 2024</p>
       </header>
 
@@ -600,7 +635,7 @@
           <p class="intro">Join us as we celebrate two years of &quot;KITCHEN ISLAND&quot; with an afternoon of exceptional music, thoughtful hospitality and the community that built it.</p>
         </div>
         <div class="hero-mark">
-          <img class="brand-logo" src="assets/kitchen-island-logo-transparent.png" alt='&quot;KITCHEN ISLAND&quot; logo'>
+          <img class="brand-logo" src="assets/kitchen-island-logo-transparent.png" alt='&quot;KITCHEN ISLAND&quot; symbol'>
         </div>
       </section>
 
@@ -618,7 +653,6 @@
           </button>
           <figcaption class="menu-caption">
             <span class="menu-label">Menu Page I</span>
-            <span>Open full size</span>
           </figcaption>
         </figure>
 
@@ -635,7 +669,6 @@
           </button>
           <figcaption class="menu-caption">
             <span class="menu-label">Menu Page II</span>
-            <span>Open full size</span>
           </figcaption>
         </figure>
       </section>
@@ -651,7 +684,7 @@
         </div>
         <div class="info-item">
           <span class="info-label">Dress Code</span>
-          <span class="info-value">BLANC</span>
+          <span class="info-value">"BLANC" (White)</span>
         </div>
         <div class="info-item">
           <span class="info-label">Bar</span>
@@ -665,11 +698,11 @@
           <div class="pricing-grid">
             <div class="pricing-row">
               <span class="pricing-label">Community</span>
-              <strong>£8</strong>
+              <strong class="pricing-value">£8</strong>
             </div>
             <div class="pricing-row">
               <span class="pricing-label">Guest</span>
-              <strong>£12</strong>
+              <strong class="pricing-value">£12</strong>
             </div>
           </div>
           <p class="pricing-note">Payment is requested following approval. Your place is confirmed once payment has been received.</p>
