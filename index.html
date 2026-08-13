@@ -803,7 +803,70 @@
         </div>
 
         
-        <aside class="form-panel">
+        <aside class="form-panel" data-booking-panel-open>
+          <div class="form-card">
+            <div class="form-view" data-form-view>
+              <h2 class="form-title">Guest List</h2>
+              <form method="post" action="#" data-invitation-form>
+                <div class="field">
+                  <label class="form-label" for="fullName">Full Name</label>
+                  <input id="fullName" name="fullName" type="text" autocomplete="name" required>
+                </div>
+
+                <div class="field">
+                  <label class="form-label" for="email">Email</label>
+                  <input id="email" name="email" type="email" autocomplete="email" required>
+                </div>
+
+                <div class="field-group">
+                  <span class="form-label">Community Member?</span>
+                  <div class="segment" role="radiogroup" aria-label="Community Member?">
+                    <label class="segment-option">
+                      <input type="radio" name="communityStatus" value="No" checked>
+                      <span>NO</span>
+                    </label>
+                    <label class="segment-option">
+                      <input type="radio" name="communityStatus" value="Yes">
+                      <span>YES</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="conditional-field" data-conditional-field data-visible="true" aria-hidden="false">
+                  <label class="form-label" for="invitedBy">Which community member referred you?</label>
+                  <input id="invitedBy" name="invitedBy" type="text" data-invited-by autocomplete="off" placeholder="Name or Instagram @">
+                </div>
+
+                <div class="field">
+                  <label class="form-label" for="instagram">Instagram @ <span style="text-transform:none; letter-spacing:0; font-size:0.92em;">(optional)</span></label>
+                  <input id="instagram" name="instagram" type="text" autocomplete="off">
+                </div>
+
+                <div class="field">
+                  <label class="form-label" for="futureArtist">Music taste <span style="text-transform:none; letter-spacing:0; font-size:0.92em;">(optional)</span></label>
+                  <textarea id="futureArtist" name="futureArtist" placeholder="Artists, genres, eras or sounds you gravitate towards."></textarea>
+                </div>
+
+                <button class="submit-button" type="submit" data-submit-button>Request an Invitation</button>
+                <p class="form-status" data-form-status data-visible="false" aria-live="polite"></p>
+              </form>
+            </div>
+
+            <div class="success-view" data-success-view hidden>
+              <h2 class="success-title">Reservation Received</h2>
+              <div class="success-copy">
+                <p>Thank you.</p><p>Your request has been submitted for review.</p><p>If approved, we'll email <strong data-confirmation-email></strong> with your payment link.</p><p>Your place is only confirmed once payment has been received.</p>
+              </div>
+              <div class="success-actions">
+                <button class="success-button" type="button" data-close-confirmation>Close</button>
+              </div>
+              <p class="success-meta" data-confirmation-reservation></p>
+            </div>
+          </div>
+        </aside>
+      
+        
+        <aside class="form-panel" data-booking-panel-soldout hidden>
           <div class="form-card sold-out-card">
             <p class="sold-out-kicker">Reservations</p>
             <h2 class="form-title">Reservations Currently Full</h2>
@@ -830,6 +893,7 @@
     <script>
       const apiBaseUrl = "https://lucius-aiden.github.io/kitchen_island_landing";
       const confirmationPath = "/request-received/";
+      const reservationsPubliclyOpen = true;
       const form = document.querySelector("[data-invitation-form]");
       const formView = document.querySelector("[data-form-view]");
       const successView = document.querySelector("[data-success-view]");
@@ -846,6 +910,17 @@
       const lightboxClose = document.querySelector("[data-lightbox-close]");
       const lightboxTriggers = Array.from(document.querySelectorAll("[data-lightbox-trigger]"));
       const initialSubmitLabel = submitButton ? submitButton.textContent : "";
+      const bookingPanelOpen = document.querySelector("[data-booking-panel-open]");
+      const bookingPanelSoldOut = document.querySelector("[data-booking-panel-soldout]");
+
+      const setBookingAvailability = (isOpen) => {
+        if (bookingPanelOpen) {
+          bookingPanelOpen.hidden = !isOpen;
+        }
+        if (bookingPanelSoldOut) {
+          bookingPanelSoldOut.hidden = isOpen;
+        }
+      };
 
       const selectedCommunityValue = () => {
         const active = communityInputs.find((input) => input.checked);
@@ -930,9 +1005,36 @@
         lightboxImage.src = "";
       };
 
+      const syncBookingAvailability = async () => {
+        if (!reservationsPubliclyOpen) {
+          setBookingAvailability(false);
+          return;
+        }
+        if (!apiBaseUrl) {
+          setBookingAvailability(true);
+          return;
+        }
+
+        try {
+          const response = await fetch(`${apiBaseUrl}/api/status`, {
+            method: "GET"
+          });
+          if (!response.ok) {
+            throw new Error("Status unavailable");
+          }
+          const data = await response.json();
+          const remainingSpaces = Number(data?.summary?.remainingSpaces);
+          setBookingAvailability(!(Number.isFinite(remainingSpaces) && remainingSpaces <= 0));
+        } catch (_error) {
+          setBookingAvailability(true);
+        }
+      };
+
       syncConditionalState();
       setStatus("");
+      setBookingAvailability(reservationsPubliclyOpen);
       communityInputs.forEach((input) => input.addEventListener("change", syncConditionalState));
+      void syncBookingAvailability();
 
       lightboxTriggers.forEach((trigger) => {
         trigger.addEventListener("click", () => {
@@ -986,6 +1088,18 @@
           };
 
           try {
+            const statusResponse = await fetch(`${apiBaseUrl}/api/status`, {
+              method: "GET"
+            });
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              const remainingSpaces = Number(statusData?.summary?.remainingSpaces);
+              if (Number.isFinite(remainingSpaces) && remainingSpaces <= 0) {
+                setBookingAvailability(false);
+                throw new Error("Reservations are currently full.");
+              }
+            }
+
             const response = await fetch(`${apiBaseUrl}/api/reservations/request`, {
               method: "POST",
               headers: {
