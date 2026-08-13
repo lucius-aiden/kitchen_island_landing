@@ -807,7 +807,8 @@
           <div class="form-card">
             <div class="form-view" data-form-view>
               <h2 class="form-title">Guest List</h2>
-              <form method="post" action="#" data-invitation-form>
+              <form method="post" action="#" data-invitation-form novalidate>
+                <input type="hidden" name="accessToken" value="">
                 <div class="field">
                   <label class="form-label" for="fullName">Full Name</label>
                   <input id="fullName" name="fullName" type="text" autocomplete="name" required>
@@ -815,7 +816,7 @@
 
                 <div class="field">
                   <label class="form-label" for="email">Email</label>
-                  <input id="email" name="email" type="email" autocomplete="email" required>
+                  <input id="email" name="email" type="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" required>
                 </div>
 
                 <div class="field-group">
@@ -834,12 +835,12 @@
 
                 <div class="conditional-field" data-conditional-field data-visible="true" aria-hidden="false">
                   <label class="form-label" for="invitedBy">Which community member referred you?</label>
-                  <input id="invitedBy" name="invitedBy" type="text" data-invited-by autocomplete="off" placeholder="Name or Instagram @">
+                  <input id="invitedBy" name="invitedBy" type="text" data-invited-by autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Name or Instagram @">
                 </div>
 
                 <div class="field">
                   <label class="form-label" for="instagram">Instagram @ <span style="text-transform:none; letter-spacing:0; font-size:0.92em;">(optional)</span></label>
-                  <input id="instagram" name="instagram" type="text" autocomplete="off">
+                  <input id="instagram" name="instagram" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="brooktamirat">
                 </div>
 
                 <div class="field">
@@ -894,7 +895,9 @@
       const apiBaseUrl = "https://lucius-aiden.github.io/kitchen_island_landing";
       const confirmationPath = "/request-received/";
       const reservationsPubliclyOpen = true;
+      const requireAccessToken = false;
       const form = document.querySelector("[data-invitation-form]");
+      const accessTokenInputs = Array.from(document.querySelectorAll("[name='accessToken']"));
       const formView = document.querySelector("[data-form-view]");
       const successView = document.querySelector("[data-success-view]");
       const statusBox = document.querySelector("[data-form-status]");
@@ -912,6 +915,8 @@
       const initialSubmitLabel = submitButton ? submitButton.textContent : "";
       const bookingPanelOpen = document.querySelector("[data-booking-panel-open]");
       const bookingPanelSoldOut = document.querySelector("[data-booking-panel-soldout]");
+      const bookingEndpointError = "Bookings are temporarily unavailable while we refresh the booking endpoint.";
+      const accessTokenError = "This reservation link is invalid or expired.";
 
       const setBookingAvailability = (isOpen) => {
         if (bookingPanelOpen) {
@@ -954,6 +959,83 @@
         }
         submitButton.disabled = isSubmitting;
         submitButton.textContent = isSubmitting ? "Submitting..." : initialSubmitLabel;
+      };
+
+      const normalizeTextValue = (value) => typeof value === "string" ? value.trim() : "";
+
+      const normalizeInstagramValue = (value) => normalizeTextValue(value)
+        .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+        .replace(/^@+/, "");
+
+      const resolveAccessToken = () => {
+        const params = new URLSearchParams(window.location.search);
+        return normalizeTextValue(
+          params.get("invite") ||
+          params.get("accessToken") ||
+          params.get("token")
+        );
+      };
+
+      const resolveApiBaseUrl = () => {
+        if (!apiBaseUrl) {
+          return { ok: false, message: "Submissions are temporarily unavailable during review." };
+        }
+
+        try {
+          const resolved = new URL(apiBaseUrl);
+          if (/github\.io$/i.test(resolved.hostname)) {
+            return { ok: false, message: bookingEndpointError };
+          }
+          return { ok: true, value: resolved.toString().replace(/\/+$/, "") };
+        } catch (_error) {
+          return { ok: false, message: bookingEndpointError };
+        }
+      };
+
+      const buildApiUrl = (path) => {
+        const resolved = resolveApiBaseUrl();
+        if (!resolved.ok) {
+          throw new Error(resolved.message);
+        }
+        return new URL(path, resolved.value + "/").toString();
+      };
+
+      const syncAccessTokenInputs = () => {
+        const accessToken = resolveAccessToken();
+        accessTokenInputs.forEach((input) => {
+          input.value = accessToken;
+        });
+        return accessToken;
+      };
+
+      const validatePayload = (payload) => {
+        if (!payload.fullName) {
+          return "Enter your full name.";
+        }
+        if (!payload.email) {
+          return "Enter your email address.";
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+          return "Enter a valid email address.";
+        }
+        if (!["Yes", "No"].includes(payload.communityStatus)) {
+          return "Choose whether you're already a community member.";
+        }
+        if (payload.communityStatus === "No" && !payload.invitedBy) {
+          return "Add the community member who referred you.";
+        }
+        return "";
+      };
+
+      const readResponsePayload = async (response) => {
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          return response.json();
+        }
+        const text = await response.text();
+        return {
+          error: text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+        };
       };
 
       const showSuccess = ({ email, reservationId }) => {
@@ -1006,17 +1088,24 @@
       };
 
       const syncBookingAvailability = async () => {
-        if (!reservationsPubliclyOpen) {
+        const accessToken = syncAccessTokenInputs();
+        if (requireAccessToken && !accessToken) {
+          setBookingAvailability(false);
+          setStatus(accessTokenError);
+          return;
+        }
+        if (!reservationsPubliclyOpen && !accessToken) {
           setBookingAvailability(false);
           return;
         }
-        if (!apiBaseUrl) {
+        const resolvedApiBaseUrl = resolveApiBaseUrl();
+        if (!resolvedApiBaseUrl.ok) {
           setBookingAvailability(true);
           return;
         }
 
         try {
-          const response = await fetch(`${apiBaseUrl}/api/status`, {
+          const response = await fetch(buildApiUrl("api/status"), {
             method: "GET"
           });
           if (!response.ok) {
@@ -1031,6 +1120,7 @@
       };
 
       syncConditionalState();
+      syncAccessTokenInputs();
       setStatus("");
       setBookingAvailability(reservationsPubliclyOpen);
       communityInputs.forEach((input) => input.addEventListener("change", syncConditionalState));
@@ -1069,26 +1159,33 @@
       if (form) {
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
-          if (!apiBaseUrl) {
-            setStatus("Submissions are temporarily unavailable during review.");
+          const formData = new FormData(form);
+          const payload = {
+            fullName: normalizeTextValue(formData.get("fullName")),
+            email: normalizeTextValue(formData.get("email")).toLowerCase(),
+            instagram: normalizeInstagramValue(formData.get("instagram")),
+            communityStatus: selectedCommunityValue(),
+            invitedBy: normalizeTextValue(formData.get("invitedBy")),
+            futureArtist: normalizeTextValue(formData.get("futureArtist")),
+            accessToken: syncAccessTokenInputs()
+          };
+
+          if (requireAccessToken && !payload.accessToken) {
+            setStatus(accessTokenError);
+            return;
+          }
+
+          const validationMessage = validatePayload(payload);
+          if (validationMessage) {
+            setStatus(validationMessage);
             return;
           }
 
           setStatus("");
           setSubmitting(true);
 
-          const formData = new FormData(form);
-          const payload = {
-            fullName: formData.get("fullName"),
-            email: formData.get("email"),
-            instagram: formData.get("instagram"),
-            communityStatus: selectedCommunityValue(),
-            invitedBy: formData.get("invitedBy"),
-            futureArtist: formData.get("futureArtist")
-          };
-
           try {
-            const statusResponse = await fetch(`${apiBaseUrl}/api/status`, {
+            const statusResponse = await fetch(buildApiUrl("api/status"), {
               method: "GET"
             });
             if (statusResponse.ok) {
@@ -1100,7 +1197,7 @@
               }
             }
 
-            const response = await fetch(`${apiBaseUrl}/api/reservations/request`, {
+            const response = await fetch(buildApiUrl("api/reservations/request"), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
@@ -1108,7 +1205,7 @@
               body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
+            const data = await readResponsePayload(response);
             if (!response.ok) {
               throw new Error(data.error || "Request failed");
             }
