@@ -331,6 +331,27 @@
         transition: opacity 220ms ease, transform 220ms ease;
       }
 
+      .sold-out-card {
+        display: grid;
+        gap: 18px;
+        min-height: 100%;
+        align-content: start;
+      }
+
+      .sold-out-kicker {
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.72rem;
+        color: var(--accent);
+      }
+
+      .sold-out-copy {
+        display: grid;
+        gap: 14px;
+        color: var(--muted);
+        line-height: 1.82;
+      }
+
       .form-view[hidden],
       .success-view[hidden],
       .lightbox[hidden] {
@@ -781,67 +802,18 @@
           <p class="pricing-note">Payment is requested following approval. Your place is confirmed once payment has been received.</p>
         </div>
 
+        
         <aside class="form-panel">
-          <div class="form-card">
-            <div class="form-view" data-form-view>
-              <h2 class="form-title">Guest List</h2>
-              <form method="post" action="#" data-invitation-form>
-                <div class="field">
-                  <label class="form-label" for="fullName">Full Name</label>
-                  <input id="fullName" name="fullName" type="text" autocomplete="name" required>
-                </div>
-
-                <div class="field">
-                  <label class="form-label" for="email">Email</label>
-                  <input id="email" name="email" type="email" autocomplete="email" required>
-                </div>
-
-                <div class="field-group">
-                  <span class="form-label">Community Member?</span>
-                  <div class="segment" role="radiogroup" aria-label="Community Member?">
-                    <label class="segment-option">
-                      <input type="radio" name="communityStatus" value="No" checked>
-                      <span>NO</span>
-                    </label>
-                    <label class="segment-option">
-                      <input type="radio" name="communityStatus" value="Yes">
-                      <span>YES</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="conditional-field" data-conditional-field data-visible="true" aria-hidden="false">
-                  <label class="form-label" for="invitedBy">Which community member referred you?</label>
-                  <input id="invitedBy" name="invitedBy" type="text" data-invited-by autocomplete="off" placeholder="Name or Instagram @">
-                </div>
-
-                <div class="field">
-                  <label class="form-label" for="instagram">Instagram @ <span style="text-transform:none; letter-spacing:0; font-size:0.92em;">(optional)</span></label>
-                  <input id="instagram" name="instagram" type="text" autocomplete="off">
-                </div>
-
-                <div class="field">
-                  <label class="form-label" for="futureArtist">Music taste <span style="text-transform:none; letter-spacing:0; font-size:0.92em;">(optional)</span></label>
-                  <textarea id="futureArtist" name="futureArtist" placeholder="Artists, genres, eras or sounds you gravitate towards."></textarea>
-                </div>
-
-                <button class="submit-button" type="submit" data-submit-button>Request an Invitation</button>
-                <p class="form-status" data-form-status data-visible="false" aria-live="polite"></p>
-              </form>
-            </div>
-
-            <div class="success-view" data-success-view hidden>
-              <h2 class="success-title">Reservation Received</h2>
-              <div class="success-copy">
-                <p>Thank you.</p><p>Your request has been submitted for review.</p><p>If approved, we'll email <strong data-confirmation-email></strong> with your payment link.</p><p>Your place is only confirmed once payment has been received.</p>
-              </div>
-              <div class="success-actions">
-                <button class="success-button" type="button" data-close-confirmation>Close</button>
-              </div>
-              <p class="success-meta" data-confirmation-reservation></p>
+          <div class="form-card sold-out-card">
+            <p class="sold-out-kicker">Reservations</p>
+            <h2 class="form-title">Reservations Currently Full</h2>
+            <div class="sold-out-copy">
+              <p>Reservations for &quot;KITCHEN ISLAND&quot; SUMMER SERVICE are currently at capacity. If additional places are released, reservations will reopen here.</p>
+              <p>Thank you for the incredible response.</p>
             </div>
           </div>
         </aside>
+      
       </section>
     </main>
 
@@ -856,7 +828,7 @@
 
     
     <script>
-      const apiBaseUrl = "https://suffered-wait-elevation-borders.trycloudflare.com";
+      const apiBaseUrl = "https://lucius-aiden.github.io/kitchen_island_landing";
       const confirmationPath = "/request-received/";
       const form = document.querySelector("[data-invitation-form]");
       const formView = document.querySelector("[data-form-view]");
@@ -992,56 +964,58 @@
         }
       });
 
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        if (!apiBaseUrl) {
-          setStatus("Submissions are temporarily unavailable during review.");
-          return;
-        }
-
-        setStatus("");
-        setSubmitting(true);
-
-        const formData = new FormData(form);
-        const payload = {
-          fullName: formData.get("fullName"),
-          email: formData.get("email"),
-          instagram: formData.get("instagram"),
-          communityStatus: selectedCommunityValue(),
-          invitedBy: formData.get("invitedBy"),
-          futureArtist: formData.get("futureArtist")
-        };
-
-        try {
-          const response = await fetch(`${apiBaseUrl}/api/reservations/request`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-          });
-
-          const data = await response.json();
-          if (!response.ok) {
-            throw new Error(data.error || "Request failed");
+      if (form) {
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!apiBaseUrl) {
+            setStatus("Submissions are temporarily unavailable during review.");
+            return;
           }
 
-          form.reset();
-          const defaultCommunity = communityInputs.find((input) => input.value === "No");
-          if (defaultCommunity) {
-            defaultCommunity.checked = true;
+          setStatus("");
+          setSubmitting(true);
+
+          const formData = new FormData(form);
+          const payload = {
+            fullName: formData.get("fullName"),
+            email: formData.get("email"),
+            instagram: formData.get("instagram"),
+            communityStatus: selectedCommunityValue(),
+            invitedBy: formData.get("invitedBy"),
+            futureArtist: formData.get("futureArtist")
+          };
+
+          try {
+            const response = await fetch(`${apiBaseUrl}/api/reservations/request`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+              throw new Error(data.error || "Request failed");
+            }
+
+            form.reset();
+            const defaultCommunity = communityInputs.find((input) => input.value === "No");
+            if (defaultCommunity) {
+              defaultCommunity.checked = true;
+            }
+            syncConditionalState();
+            showSuccess({
+              email: payload.email,
+              reservationId: data.reservation?.id || ""
+            });
+          } catch (error) {
+            setStatus(error.message || "Something went wrong. Please try again.");
+          } finally {
+            setSubmitting(false);
           }
-          syncConditionalState();
-          showSuccess({
-            email: payload.email,
-            reservationId: data.reservation?.id || ""
-          });
-        } catch (error) {
-          setStatus(error.message || "Something went wrong. Please try again.");
-        } finally {
-          setSubmitting(false);
-        }
-      });
+        });
+      }
 
       if (closeButton) {
         closeButton.addEventListener("click", () => {
